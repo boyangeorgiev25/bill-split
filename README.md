@@ -19,4 +19,5 @@ A simple React-based application that helps you split bills with friends. You ca
 
 ## 📸 Screenshots
 
-_Coming soon..._
+<img width="1676" alt="Screenshot 2025-07-09 at 11 17 05 PM" src="https://github.com/user-attachments/assets/36ecd956-1a52-47c7-9d97-626a4801c121" />
+
