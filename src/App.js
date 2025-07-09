@@ -20,7 +20,7 @@ export default function App() {
   return (
     <div className="app">
      <FriendsSection friends={friends} selectedFriend={selectedFriend} handleSelect={handleSelect} />
-     <Bill friends={friends} />
+     <Bill friends={friends} selectedFriend={selectedFriend}/>
      <AddFriend setFriends={setFriends} />
     </div>
   );
@@ -80,24 +80,29 @@ function handleAddFriend(event) {
   );
 }
 
-function Bill({friends}) {
+function Bill({friends , selectedFriend}) {
 
-  function handleSplitBill(event) {
-      const bill = event.target.bill.value
-      const expence = event.target.expence.value;
-      const other = event.target.other.value;
+ function handleSplitBill(event) {
+  const form = event.target.form;
+  const bill = Number(form.bill.value);
+  const expense = Number(form.expence.value);
+
+  if (!isNaN(bill) && !isNaN(expense)) {
+    form.other.value = bill - expense;
   }
+  
+}
 
   return(
    <>
-  <form className="form-split-bill">
+  <form className="form-split-bill" >
     <h2>Split Bill</h2>
      <p>Bill value</p>
         <input id="bill" type="text" required />
      <p>Your expence</p>
-        <input id="expence" type="text" required />
-      <p>X expence</p>
-        <input id="other" type="text" required />
+        <input id="expence" type="text" required onChange={handleSplitBill} />
+      <p>{selectedFriend? selectedFriend?.name+"'s" : "Frend's"} expence</p>
+        <input id="other" type="text" required onChange={handleSplitBill} />
       <p>Who is paying?</p>
       <select>
        {friends.map((friend) => (
