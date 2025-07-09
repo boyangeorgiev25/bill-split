@@ -1,47 +1,40 @@
 import React from 'react';
 import './index.css';
-
-const initialFriends = [
-  {
-    id: 118836,
-    name: "Clark",
-    image: "https://i.pravatar.cc/48?u=118836",
-    balance: -7,
-  },
-  {
-    id: 933372,
-    name: "Sarah",
-    image: "https://i.pravatar.cc/48?u=933372",
-    balance: 20,
-  },
-  {
-    id: 499476,
-    name: "Anthony",
-    image: "https://i.pravatar.cc/48?u=499476",
-    balance: 0,
-  },
-];
+import { useState } from 'react';
 
 
 
 export default function App() {
+  const [friends, setFriends] = useState([]);
+  const [selectedFriend, setSelectedFriend] = useState(null);
+
+
+ function handleSelect(id) {
+  if (selectedFriend?.id === id) {
+    setSelectedFriend(null);
+    return;
+  }
+    setSelectedFriend(friends.find(friend => friend.id === id));
+  }
+
   return (
     <div className="app">
-     <FriendsSection />
-     <Bill />
-     <AddFriend />
+     <FriendsSection friends={friends} selectedFriend={selectedFriend} handleSelect={handleSelect} />
+     <Bill friends={friends} />
+     <AddFriend setFriends={setFriends} />
     </div>
   );
 }
 
 
-function FriendsSection() {
+function FriendsSection({handleSelect , friends, selectedFriend}) {
+    if(!friends) {return <h1>No Friends</h1>}
   return (
     <div className="sidebar">
       <ul>
-        {initialFriends.map((friend) => (
+        {friends.map((friend) => (
           <li key={friend.id}>
-            <Friend name={friend.name} imgName={friend.image} />
+            <Friend selectedFriend={selectedFriend} handleSelect={handleSelect} id={friend.id} name={friend.name} imgName={friend.image} owed={friend.owed} />
           </li>
         ))}
       </ul>
@@ -49,22 +42,33 @@ function FriendsSection() {
   );
 }
 
-function Friend({ name, imgName }) {
+function Friend({id, name, imgName ,selectedFriend, handleSelect , owed}) {
   return (
     <>
-      <img src={imgName} alt={name} />
+      <img src={imgName} alt={name} onError={(e)=> {e.target.onError = null; e.target.src="https://i.pravatar.cc/48?u=118836"}} />
       <h1>{name}</h1>
-      <p>Own: $0</p>
-      <button className="button">Select</button>
+      <p>Own: {owed}</p>
+      <button className="button" onClick={()=>handleSelect(id)} >{selectedFriend?.id === id ? "Cancel" : "Select"}</button>
     </>
   );
 }
 
 
-function AddFriend() {
+function AddFriend({setFriends}) {
+
+function handleAddFriend(event) {
+    event.preventDefault();
+    const name = event.target.name.value;
+    const image = event.target.image.value;
+    const owed = 0;
+    const newFriend = { id: Date.now(), name, image , owed };
+    setFriends(friends => [...friends, newFriend]);
+    event.target.reset();
+  } 
+
   return (
     <>
-      <form className="form-add-friend">
+      <form className="form-add-friend" onSubmit={handleAddFriend}>
         <h2>Add Friend</h2>
         <label>Friend name</label>
         <input id="name" type="text" required />
@@ -76,23 +80,34 @@ function AddFriend() {
   );
 }
 
-function Bill(){
+function Bill({friends}) {
+
+  function handleSplitBill(event) {
+      const bill = event.target.bill.value
+      const expence = event.target.expence.value;
+      const other = event.target.other.value;
+  }
+
   return(
    <>
   <form className="form-split-bill">
     <h2>Split Bill</h2>
      <p>Bill value</p>
-        <input id="name" type="text" required />
+        <input id="bill" type="text" required />
      <p>Your expence</p>
-        <input id="image" type="text" required />
+        <input id="expence" type="text" required />
       <p>X expence</p>
-        <input id="image" type="text" required />
+        <input id="other" type="text" required />
       <p>Who is paying?</p>
       <select>
-        <option value="Clark">Clark</option>
-        <option value="Sarah">Sarah</option>
-        <option value="Anthony">Anthony</option>
+       {friends.map((friend) => (
+          <option key={friend.id} value={friend.id}>
+            {friend.name}
+          </option>
+        ))}
+        <option value="you">You</option>
       </select>
+
         <button className="button">Split</button>
   </form>
   </>
