@@ -20,7 +20,7 @@ export default function App() {
   return (
     <div className="app">
      <FriendsSection friends={friends} selectedFriend={selectedFriend} handleSelect={handleSelect} />
-     <Bill friends={friends} selectedFriend={selectedFriend}/>
+     <Bill friends={friends} selectedFriend={selectedFriend} setFriends={setFriends}/>
      <AddFriend setFriends={setFriends} />
     </div>
   );
@@ -47,7 +47,13 @@ function Friend({id, name, imgName ,selectedFriend, handleSelect , owed}) {
     <>
       <img src={imgName} alt={name} onError={(e)=> {e.target.onError = null; e.target.src="https://i.pravatar.cc/48?u=118836"}} />
       <h1>{name}</h1>
-      <p>Own: {owed}</p>
+     <p style={{color: owed === 0 ? "blue" : owed > 0 ? "green" : "red"}}>
+  {owed === 0
+    ? "Nothing to owe"
+    : owed > 0
+    ? `Owns you ${owed}`
+    : `You owe ${Math.abs(owed)}`}
+</p>
       <button className="button" onClick={()=>handleSelect(id)} >{selectedFriend?.id === id ? "Cancel" : "Select"}</button>
     </>
   );
@@ -80,9 +86,10 @@ function handleAddFriend(event) {
   );
 }
 
-function Bill({friends , selectedFriend}) {
+function Bill({ friends, selectedFriend, setFriends }) {
 
- function handleSplitBill(event) {
+ function handleInputChange(event) {
+    event.preventDefault();
   const form = event.target.form;
   const bill = Number(form.bill.value);
   const expense = Number(form.expence.value);
@@ -90,21 +97,52 @@ function Bill({friends , selectedFriend}) {
   if (!isNaN(bill) && !isNaN(expense)) {
     form.other.value = bill - expense;
   }
-  
-}
+ }
 
+
+ function updateOwedAmount(event) {
+  event.preventDefault();
+  const form = event.target; 
+  const bill = Number(form.bill.value);
+  const expense = Number(form.expence.value);
+  const who = form.who.value;
+  const other = Number(form.other.value);
+
+  if (who === "you" && selectedFriend) {
+    const owedAmount = bill - expense;
+    setFriends((prevFriends) =>
+      prevFriends.map((friend) =>
+        friend.id === selectedFriend.id
+          ? { ...friend, owed: friend.owed + owedAmount }
+          : friend
+      )
+    );
+  }
+  
+  else if (who !== "you" && selectedFriend) {
+  const owedAmount = bill - other;
+  const payingFriendId = Number(who); 
+  setFriends((prevFriends) =>
+    prevFriends.map((friend) =>
+      friend.id === payingFriendId
+        ? { ...friend, owed: friend.owed - owedAmount }
+        : friend
+    )
+  );
+}
+}
   return(
    <>
-  <form className="form-split-bill" >
+  <form className="form-split-bill" onSubmit={updateOwedAmount} >
     <h2>Split Bill</h2>
      <p>Bill value</p>
         <input id="bill" type="text" required />
-     <p>Your expence</p>
-        <input id="expence" type="text" required onChange={handleSplitBill} />
-      <p>{selectedFriend? selectedFriend?.name+"'s" : "Frend's"} expence</p>
-        <input id="other" type="text" required onChange={handleSplitBill} />
+     <p>Your expense</p>
+        <input id="expence" type="text" required onChange={handleInputChange} />
+      <p>{selectedFriend ? `${selectedFriend.name}'s` : "Friend's"} expense</p>
+        <input id="other" type="text" required onChange={handleInputChange} />
       <p>Who is paying?</p>
-      <select>
+      <select id="who" required>
        {friends.map((friend) => (
           <option key={friend.id} value={friend.id}>
             {friend.name}
